@@ -1,0 +1,6 @@
+projectKey=Study13
+serverUrl=http://localhost:9000
+serverVersion=9.8.0.63668
+dashboardUrl=http://localhost:9000/dashboard?id=Study13
+ceTaskId=AYYSMW0iqGkA_RWTWCBg
+ceTaskUrl=http://localhost:9000/api/ce/task?id=AYYSMW0iqGkA_RWTWCBg

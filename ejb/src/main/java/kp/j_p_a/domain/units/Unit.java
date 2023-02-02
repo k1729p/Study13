@@ -1,0 +1,249 @@
+package kp.j_p_a.domain.units;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapKeyEnumerated;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.OrderBy;
+
+import kp.j_p_a.domain.components.CardinalDirection;
+
+/**
+ * The entity class for the <B>unit</B>.
+ *
+ */
+@Entity
+public class Unit implements Comparable<Unit> {
+	@Id
+	private String id;
+
+	@OneToOne
+	private Unit previous = null;
+
+	@OneToOne(mappedBy = "previous", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Unit next;
+
+	/*- Self-Referential Relationship: 'parent' - 'children' */
+
+	@ManyToOne
+	private Unit parent;
+
+	@OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OrderBy
+	private Set<Unit> children = new TreeSet<>();
+
+	@OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+	@MapKeyEnumerated(EnumType.STRING)
+	private Map<CardinalDirection, Side> sides = new TreeMap<>();
+
+	/**
+	 * Constructor.
+	 * 
+	 */
+	public Unit() {
+		super();
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param id the unit id
+	 */
+	public Unit(String id) {
+		super();
+		this.id = id;
+		List.of(CardinalDirection.values()).forEach(cd -> this.sides.put(cd, new Side()));
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param id       the unit id
+	 * @param previous the previous unit
+	 */
+	public Unit(String id, Unit previous) {
+		this(id);
+		this.previous = previous;
+	}
+
+	/**
+	 * Adds the child unit.
+	 * 
+	 * @param child the child unit to add
+	 */
+	public void addChild(Unit child) {
+
+		children.add(child);
+		child.setParent(this);
+	}
+
+	/**
+	 * Removes the child unit.
+	 * 
+	 * @param child the child unit to remove
+	 */
+	public void removeChild(Unit child) {
+
+		children.remove(child);
+		child.setParent(null);
+	}
+
+	/**
+	 * Gets the unit id.
+	 * 
+	 * @return the id
+	 */
+	public String getId() {
+		return id;
+	}
+
+	/**
+	 * Gets the previous unit.
+	 * 
+	 * @return the previous unit
+	 */
+	public Unit getPrevious() {
+		return previous;
+	}
+
+	/**
+	 * Sets the previous unit.
+	 * 
+	 * @param previous the previous unit to set
+	 */
+	public void setPrevious(Unit previous) {
+		this.previous = previous;
+	}
+
+	/**
+	 * Gets the next unit.
+	 * 
+	 * @return the next unit
+	 */
+	public Unit getNext() {
+		return next;
+	}
+
+	/**
+	 * Sets the next unit.
+	 * 
+	 * @param next the next unit to set
+	 */
+	public void setNext(Unit next) {
+		this.next = next;
+	}
+
+	/**
+	 * Gets the parent unit.
+	 * 
+	 * @return the parent unit
+	 */
+	public Unit getParent() {
+		return parent;
+	}
+
+	/**
+	 * Sets the parent unit.
+	 * 
+	 * @param parent the parent unit to set
+	 */
+	public void setParent(Unit parent) {
+		this.parent = parent;
+	}
+
+	/**
+	 * Gets the children unit set.
+	 * 
+	 * @return the children unit set
+	 */
+	public Set<Unit> getChildren() {
+		return children;
+	}
+
+	/**
+	 * Gets the sides map.
+	 * 
+	 * @return the sides map
+	 */
+	public Map<CardinalDirection, Side> getSides() {
+		return sides;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((id == null) ? 0 : id.hashCode());
+		return result;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		Unit other = (Unit) obj;
+		if (id == null) {
+			if (other.id != null) {
+				return false;
+			}
+		} else if (!id.equals(other.id)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 */
+	@Override
+	public int compareTo(Unit unit) {
+
+		return Objects.nonNull(unit) ? this.id.compareTo(unit.id) : 0;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * 
+	 */
+	@Override
+	public String toString() {
+		return String.format("Unit: id[%s], previous[%s], next[%s], parent[%s], children size[%d], " /*-*/
+				+ "north side[%d], east side[%d], south side[%d], west side[%d]", /*-*/
+				id, /*-*/
+				Objects.nonNull(previous) ? previous.id : "-", /*-*/
+				Objects.nonNull(next) ? next.id : "-", /*-*/
+				Objects.nonNull(parent) ? parent.id : "-", /*-*/
+				children.size(), /*-*/
+				Objects.nonNull(sides.get(CardinalDirection.NORTH)) ? sides.get(CardinalDirection.NORTH).id : 0, /*-*/
+				Objects.nonNull(sides.get(CardinalDirection.EAST)) ? sides.get(CardinalDirection.EAST).id : 0, /*-*/
+				Objects.nonNull(sides.get(CardinalDirection.SOUTH)) ? sides.get(CardinalDirection.SOUTH).id : 0, /*-*/
+				Objects.nonNull(sides.get(CardinalDirection.WEST)) ? sides.get(CardinalDirection.WEST).id : 0);
+	}
+}
